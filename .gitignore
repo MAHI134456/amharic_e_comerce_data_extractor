@@ -1,0 +1,7 @@
+# Python
+__pycache__/
+# virtual environments
+env/
+# data files
+data/
+*.csv
