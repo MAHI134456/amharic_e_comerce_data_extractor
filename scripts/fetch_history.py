@@ -1,46 +1,50 @@
 import os, csv
 from telethon import TelegramClient
-from configparser import ConfigParser
+from config.settings import API_ID, API_HASH, CHANNELS, HISTORY_LIMIT, MEDIA_DIR
+from utils.logger import setup_logger
 
-# Replace these with your actual Telegram credentials
-api_id = 29625537
-api_hash = "6d1102ce84353f3bf6377acb5390358f"
+logger = setup_logger("fetch_history_csv")
+os.makedirs(MEDIA_DIR, exist_ok=True)
+os.makedirs("data", exist_ok=True)
 
-client = TelegramClient('session_name', api_id, api_hash)
+client = TelegramClient("session_history", API_ID, API_HASH)
 
-channels = [
-    "ethio_brand_collection",
-    "Leyueqa", "sinayelj", "Shewabrand",
-    "helloomarketethiopia", "modernshoppingcenter", "qnashcom"
-]
+CSV_FILE = "data/telegram_messages.csv"
 
-csv_file = "data/raw_media/telegram_messages.csv"
-os.makedirs(os.path.dirname(csv_file), exist_ok=True)
-
-# Write headers if file does not exist
-if not os.path.exists(csv_file):
-    with open(csv_file, "w", newline='', encoding="utf-8") as f:
+# Initialize CSV file with headers
+if not os.path.exists(CSV_FILE):
+    with open(CSV_FILE, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["channel", "message_id", "sender_id", "timestamp", "text"])
+        writer.writerow(["channel", "message_id", "sender_id", "timestamp", "text", "media_paths"])
 
-async def fetch_history():
+async def fetch():
     await client.start()
-    for username in channels:
-        try:
-            async for message in client.iter_messages(username, limit=500):  # You can increase limit
-                if message.text:
-                    with open(csv_file, "a", newline='', encoding="utf-8") as f:
-                        writer = csv.writer(f)
-                        writer.writerow([
-                            username,
-                            message.id,
-                            message.sender_id,
-                            message.date.isoformat(),
-                            message.text.replace('\n', ' ')
-                        ])
-            print(f"✅ Done fetching from @{username}")
-        except Exception as e:
-            print(f"❌ Failed to fetch from @{username}: {e}")
+    for channel in CHANNELS:
+        logger.info(f"Fetching from @{channel}")
+        async for msg in client.iter_messages(channel, limit=HISTORY_LIMIT):
+            text = msg.text or ""
+            media_paths = []
 
-with client:
-    client.loop.run_until_complete(fetch_history())
+            if msg.photo or msg.document:
+                try:
+                    media_path = await msg.download_media(file=os.path.join(MEDIA_DIR, channel))
+                    media_paths.append(media_path)
+                    logger.info(f"Downloaded media to {media_path}")
+                except Exception as e:
+                    logger.warning(f"Failed to download media: {e}")
+
+            with open(CSV_FILE, "a", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    channel,
+                    msg.id,
+                    msg.sender_id,
+                    msg.date.isoformat(),
+                    text.replace("\n", " ").strip(),
+                    ";".join(media_paths)
+                ])
+        logger.info(f"✅ Done with @{channel}")
+
+if __name__ == "__main__":
+    with client:
+        client.loop.run_until_complete(fetch())
