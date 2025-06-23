@@ -5,3 +5,5 @@ env/
 # data files
 data/
 *.csv
+# config files
+config/settings.py
