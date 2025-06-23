@@ -26,6 +26,10 @@ The project is currently in the setup phase, with the development environment co
     - matplotlib: For creating visualizations and plots.
     - seaborn: For enhanced data visualization with a focus on statistical graphics.
 
+- scraped data from six telegram channels and saved to data/raw_media/telegram_massages.csv.
+- cleand the data and saved it data/processed_media/cleand_telegram_massages.csv
+- tokenized the cleaned data and labeled by rule and saved to amharic_saved_conll.txt   
+
 
 ## Project Structure
 
@@ -34,6 +38,34 @@ The project is currently in the setup phase, with the development environment co
 ├── .github/
 │   └── workflows/
 │       └── CI.yml
+├── config/
+|  └── settings.py 
+├── data/
+|  └── labeled/
+|  |  └── amharic_labeled_conll.txt
+|  |
+|  └── processed_media/ 
+|  |  └── cleand_telegram_messages.csv
+|  |
+|  └── raw_media/
+|    └── telegram_messages.csv
+|
+├── notebooks/
+|   └── preprocess.ipynb
+|
+├── preprocessing/
+|   └── preprocessing_text.py
+|
+├── scripts/
+|  └── cleaner.py
+|  └── fetch_history.py
+|  └── labels_with_rules.py
+|  └── listen_realtime.py
+|  └── tokenizer.py
+|
+├── utils/
+|  └── logger.py
+|
 ├── .gitignore
 ├── README.md
 └── env/
