@@ -1,13 +1,22 @@
 import re
+
 def clean_amharic_text(text):
-    if not text:
+    if not isinstance(text, str):
         return ""
 
-    # Keep Amharic (U+1200–U+137F), English letters, digits, +, @, space
-    allowed_pattern = r"[^\u1200-\u137F\u0041-\u005A\u0061-\u007A0-9@+\s]"
-    text = re.sub(allowed_pattern, " ", text)
+    # Replace emojis and unwanted chars
+    text = re.sub(r"[^\u1200-\u137F0-9A-Za-z@፡።፣\s\n\-\:,]", " ", text)
 
-    # Normalize multiple spaces
-    text = re.sub(r"\s+", " ", text)
+    # Normalize punctuation
+    text = text.replace("፡", " ").replace("።", ".")
+    text = text.replace(":", " ").replace("‑", "-").replace("—", "-")
 
-    return text.strip()
+    # Ensure spaces between numbers and words
+    text = re.sub(r"(\d)([፡።A-Za-z\u1200-\u137F])", r"\1 \2", text)
+    text = re.sub(r"([፡።A-Za-z\u1200-\u137F])(\d)", r"\1 \2", text)
+
+    # Collapse whitespace
+    text = re.sub(r"\s+", " ", text).strip()
+
+    return text
+
