@@ -3,8 +3,8 @@ import json
 import re
 import os
 
-input_file = "data/processed_media/cleaned_telegram_messages.csv"
-output_file = "data/labeled/amharic_labeled.conll.txt"
+input_file = "data/processed_media/cleaned_new_messages_a.csv"
+output_file = "data/labeled/amharic_labeled.conll_a.txt"
 os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
 def is_amharic(token):
@@ -24,9 +24,9 @@ def label_tokens(tokens):
         else:
             break
 
-    # 2. PRICE → after 'Price' or 'በ', before 'birr' or 'ብር'
+    # 2. PRICE → after 'Price' or 'በ', before 'birr' or 'ብር' or 
     for i, token in enumerate(tokens):
-        if token.lower() == "price" or token == "በ":
+        if token.lower() == "price" or token == "በ" or token == "ዋጋ":
             if i+1 < len(tokens) and re.match(r'^\d{2,6}$', tokens[i+1]):
                 labels[i] = 'B-PRICE'
                 labels[i+1] = 'I-PRICE'
@@ -37,7 +37,7 @@ def label_tokens(tokens):
     for i, token in enumerate(tokens):
         if token == "አድራሻ":
             labels[i] = 'B-LOC'
-            for j in range(1, 4):
+            for j in range(1, 5):
                 if i+j < len(tokens) and is_amharic(tokens[i+j]):
                     labels[i+j] = 'I-LOC'
                 else:
